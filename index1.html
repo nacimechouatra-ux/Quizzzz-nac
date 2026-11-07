@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz – 30 questions</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#1d1238;--panel:#2d1c57;--ink:#fff;--mut:#b9aedd;--acc:#ffd23f;--c0:#d63a40;--c1:#2f5be0;--c2:#f0b429;--c3:#1f8f55;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f1ecff;--panel:#fff;--ink:#1d1238;--mut:#5e5190;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f1ecff;--panel:#fff;--ink:#1d1238;--mut:#5e5190;color-scheme:light}
+:root[data-theme="dark"]{--bg:#1d1238;--panel:#2d1c57;--ink:#fff;--mut:#b9aedd;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:500 17px/1.4 "Bricolage Grotesque",system-ui,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:clamp(34px,9vw,56px);margin:0 0 8px;line-height:1.05;font-weight:800;letter-spacing:-.03em}
+p{margin:8px 0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.glyphs{display:flex;gap:8px;font-size:28px;margin-bottom:10px}
+.go{display:block;width:100%;margin-top:18px;background:var(--acc);color:#1d1238;border:0;border-radius:16px;padding:16px;font-size:22px;font-weight:800;box-shadow:0 5px 0 #b8901f}
+.go.alt{background:var(--panel);color:var(--ink);box-shadow:0 5px 0 rgba(0,0,0,.25)}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:15px;color:var(--mut)}
+.bar{height:12px;background:var(--panel);border-radius:9px;overflow:hidden;margin:10px 0 16px}
+.bar i{display:block;height:100%;background:var(--acc);width:100%}
+.q{background:var(--panel);border-radius:18px;padding:22px 18px;font-size:clamp(20px,4.6vw,28px);font-weight:700;text-align:center;min-height:110px;display:grid;place-items:center;margin-bottom:16px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{border:0;border-radius:14px;min-height:96px;padding:12px;color:#fff;font-weight:700;font-size:clamp(15px,3.8vw,20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 5px 0 rgba(0,0,0,.28);text-align:center}
+.opt b{font-size:22px}
+.o0{background:var(--c0)}.o1{background:var(--c1)}.o2{background:var(--c2);color:#1d1238}.o3{background:var(--c3)}
+.opt.dim{opacity:.35}
+.opt.good{outline:4px solid var(--ink);outline-offset:2px}
+.fb{text-align:center;font-size:22px;font-weight:800;margin-top:16px}
+.ok{color:#58d68d}.ko{color:#ff7b80}
+.mid{text-align:center;padding-top:6vh}
+.big{font-size:clamp(56px,18vw,100px);font-weight:800;line-height:1}
+.qr{background:#fff;border-radius:16px;padding:8px;width:min(60vw,260px);margin:16px auto}
+.qr svg{display:block;width:100%;height:auto}
+.hint{font-size:14px;color:var(--mut)}
+input{width:100%;max-width:320px;background:var(--panel);color:var(--ink);border:2px solid var(--mut);border-radius:12px;padding:12px 14px;font:inherit;font-size:20px;text-align:center;margin-top:14px}
+input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.chip{background:var(--panel);border:2px solid transparent;border-radius:999px;padding:8px 14px;font-size:15px}
+.chip.on{background:var(--acc);color:#1d1238;font-weight:700}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const JOIN_URL=/^https?:/.test(location.protocol)?location.href.split("#")[0]:"";
+const T=20,SH=["▲","◆","●","■"],app=document.getElementById("app");
+// [question, [4 réponses], index de la bonne réponse]
+const DIV=[
+["Combien de critères de discrimination sont interdits par la loi française ?",["15","20","25","30"],2],
+["Quelle institution indépendante peut être saisie gratuitement en cas de discrimination ?",["La CNIL","Le Défenseur des droits","La Cour des comptes","Le Conseil constitutionnel"],1],
+["Quel taux d’emploi de travailleurs en situation de handicap vise la loi pour les entreprises d’au moins 20 salariés ?",["2 %","4 %","6 %","10 %"],2],
+["L’index de l’égalité professionnelle femmes-hommes est noté sur combien de points ?",["10","50","100","1 000"],2],
+["Quelle journée est célébrée le 8 mars ?",["La Journée internationale des droits des femmes","La Journée de la Terre","La fête du Travail","La Journée de l’Europe"],0],
+["En quelle année les Françaises ont-elles voté pour la première fois ?",["1919","1936","1945","1968"],2],
+["La loi Pleven de 1972 réprime…",["Le tabagisme","Le racisme","Le travail dissimulé","Le dopage"],1],
+["Quand a lieu la Journée internationale des personnes handicapées ?",["Le 21 mars","Le 17 mai","Le 20 novembre","Le 3 décembre"],3],
+["Que célèbre-t-on le 17 mai ?",["La lutte contre l’homophobie, la transphobie et la biphobie","Les droits de l’enfant","La journée de l’eau","La fête de l’Europe"],0],
+["Que signifie « DEI » dans le monde de l’entreprise ?",["Droits, éthique, intégration","Diversité, équité, inclusion","Dialogue, emploi, insertion","Développement, évaluation, innovation"],1],
+["Un biais inconscient, c’est…",["Un mensonge volontaire","Une erreur de calcul","Un préjugé automatique dont on n’a pas conscience","Une loi européenne"],2],
+["Que désigne le « plafond de verre » ?",["Un type de vitrage","Les obstacles invisibles qui freinent l’accès aux postes de direction","Une limite de salaire légale","Un plafond d’heures supplémentaires"],1],
+["Pour un travail de valeur égale, la loi impose…",["Une rémunération égale entre femmes et hommes","Une prime pour les hommes","Un salaire selon l’ancienneté uniquement","Aucune règle"],0],
+["Quelle est la durée du congé de paternité en France (hors naissance multiple) ?",["11 jours","14 jours","25 jours","40 jours"],2],
+["Quelle peine maximale encourt une discrimination à l’embauche (Code pénal) ?",["1 an et 7 500 €","2 ans et 15 000 €","3 ans et 45 000 €","5 ans et 75 000 €"],2],
+["Lequel est un exemple de handicap invisible ?",["Une fracture","Les troubles « dys » (dyslexie…)","Un rhume","Une grippe"],1],
+["Quel terme désigne la diversité des fonctionnements cérébraux (autisme, TDAH, dys…) ?",["Neurodiversité","Biodiversité","Multiculturalité","Polyvalence"],0],
+["En quelle année la langue des signes française a-t-elle été reconnue par la loi ?",["1975","1991","2005","2015"],2],
+["Que désigne l’« aménagement raisonnable » ?",["Réduire les effectifs","Adapter le poste pour qu’une personne handicapée puisse travailler","Baisser les objectifs de tous","Reporter une embauche"],1],
+["Combien de langues nationales la Suisse compte-t-elle ?",["2","3","4","5"],2],
+["Environ combien de langues sont parlées dans le monde ?",["700","2 000","7 000","70 000"],2],
+["Quelle est la devise de l’Union européenne ?",["Liberté, égalité, fraternité","Unie dans la diversité","Un pour tous","Ensemble toujours"],1],
+["Qui fut la première femme Première ministre de France ?",["Élisabeth Borne","Simone Veil","Ségolène Royal","Édith Cresson"],3],
+["En quelle année la Charte de la diversité a-t-elle été lancée en France ?",["1994","2004","2014","2019"],1],
+["Qui a écrit « Le Deuxième Sexe » ?",["Simone Veil","Marguerite Duras","Simone de Beauvoir","George Sand"],2],
+["Que signifie le « I » de LGBTQI+ ?",["Inclusion","Intersexe","International","Identité"],1],
+["À partir de 250 salariés, l’employeur doit désigner un référent contre…",["Le télétravail","Le harcèlement sexuel et les agissements sexistes","Le retard","Le bruit"],1],
+["Lequel n’est PAS un critère de discrimination interdit ?",["L’âge","L’apparence physique","Le lieu de résidence","Le niveau de performance professionnelle"],3],
+["Quel droit permet à un élu du CSE d’alerter en cas d’atteinte aux droits des personnes ?",["Le droit d’alerte","Le droit de grève","Le droit de préemption","Le droit d’auteur"],0],
+["L’« équité », c’est…",["Traiter tout le monde de façon strictement identique","Donner à chacun ce dont il a besoin pour des chances comparables","Choisir au hasard","Appliquer la règle du plus fort"],1]
+];
+let rnd=Math.random,code="";
+function seeded(t){let h=1779033703^t.length;for(let i=0;i<t.length;i++){h=Math.imul(h^t.charCodeAt(i),3432918353);h=h<<13|h>>>19}let a=h>>>0;return()=>{a=a+0x6D2B79F5|0;let x=Math.imul(a^a>>>15,1|a);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const D="France,Paris,E;Allemagne,Berlin,E;Italie,Rome,E;Espagne,Madrid,E;Portugal,Lisbonne,E;Belgique,Bruxelles,E;Pays-Bas,Amsterdam,E;Suisse,Berne,E;Autriche,Vienne,E;Grèce,Athènes,E;Suède,Stockholm,E;Norvège,Oslo,E;Finlande,Helsinki,E;Danemark,Copenhague,E;Irlande,Dublin,E;Pologne,Varsovie,E;Hongrie,Budapest,E;Roumanie,Bucarest,E;Bulgarie,Sofia,E;Croatie,Zagreb,E;Serbie,Belgrade,E;République tchèque,Prague,E;Royaume-Uni,Londres,E;Islande,Reykjavik,E;Ukraine,Kyiv,E;Slovaquie,Bratislava,E;Slovénie,Ljubljana,E;Lituanie,Vilnius,E;Lettonie,Riga,E;Estonie,Tallinn,E;Japon,Tokyo,A;Chine,Pékin,A;Inde,New Delhi,A;Corée du Sud,Séoul,A;Thaïlande,Bangkok,A;Vietnam,Hanoï,A;Indonésie,Jakarta,A;Philippines,Manille,A;Pakistan,Islamabad,A;Iran,Téhéran,A;Irak,Bagdad,A;Arabie saoudite,Riyad,A;Liban,Beyrouth,A;Jordanie,Amman,A;Mongolie,Oulan-Bator,A;Népal,Katmandou,A;Malaisie,Kuala Lumpur,A;Bangladesh,Dacca,A;Afghanistan,Kaboul,A;Syrie,Damas,A;Qatar,Doha,A;Cambodge,Phnom Penh,A;Maroc,Rabat,F;Algérie,Alger,F;Tunisie,Tunis,F;Égypte,Le Caire,F;Sénégal,Dakar,F;Nigeria,Abuja,F;Kenya,Nairobi,F;Éthiopie,Addis-Abeba,F;Ghana,Accra,F;Cameroun,Yaoundé,F;Madagascar,Antananarivo,F;Mali,Bamako,F;Angola,Luanda,F;RD Congo,Kinshasa,F;Ouganda,Kampala,F;Zimbabwe,Harare,F;Mozambique,Maputo,F;Libye,Tripoli,F;Soudan,Khartoum,F;Niger,Niamey,F;Burkina Faso,Ouagadougou,F;Canada,Ottawa,N;États-Unis,Washington,N;Brésil,Brasilia,S;Argentine,Buenos Aires,S;Chili,Santiago,S;Pérou,Lima,S;Colombie,Bogota,S;Venezuela,Caracas,S;Équateur,Quito,S;Uruguay,Montevideo,S;Paraguay,Asunción,S;Australie,Canberra,O;Nouvelle-Zélande,Wellington,O;Fidji,Suva,O;Papouasie-Nouvelle-Guinée,Port Moresby,O".split(";").map(x=>x.split(","));
+const CN={E:"Europe",A:"Asie",F:"Afrique",N:"Amérique du Nord",S:"Amérique du Sud",O:"Océanie"};
+const pk=(a,x)=>shuf(a.filter(v=>v!==x)).slice(0,3);
+const B={"Diversité":DIV,
+"Manga":[
+["Qui est l’auteur de One Piece ?",["Eiichirō Oda","Masashi Kishimoto","Akira Toriyama","Tite Kubo"],0],
+["Comment s’appelle le héros de Naruto ?",["Sasuke Uchiwa","Naruto Uzumaki","Kakashi Hatake","Itachi Uchiwa"],1],
+["Quel accessoire emblématique porte Luffy ?",["Un chapeau de paille","Un béret rouge","Une casquette bleue","Un bonnet noir"],0],
+["Quelle est la planète d’origine de Goku dans Dragon Ball ?",["Namek","Vegeta","Terre","Kaïo"],1],
+["Qui a créé Dragon Ball ?",["Akira Toriyama","Osamu Tezuka","Hayao Miyazaki","Rumiko Takahashi"],0],
+["Comment s’appelle le héros de L’Attaque des Titans ?",["Levi Ackerman","Eren Jäger","Armin Arlert","Erwin Smith"],1],
+["Quel dieu de la mort accompagne Light dans Death Note ?",["Ryuk","Rem","Misa","Near"],0],
+["Quel studio a réalisé Le Voyage de Chihiro ?",["Ghibli","Toei","Madhouse","Bones"],0],
+["Comment s’appelle le héros de Demon Slayer ?",["Zenitsu Agatsuma","Inosuke Hashibira","Tanjiro Kamado","Giyu Tomioka"],2],
+["Comment appelle-t-on les mangas destinés aux jeunes garçons ?",["Shōjo","Seinen","Shōnen","Josei"],2],
+["Dans quel sens lit-on traditionnellement un manga japonais ?",["De droite à gauche","De gauche à droite","De bas en haut","Dans les deux sens"],0],
+["Comment s’appelle le héros de My Hero Academia ?",["Katsuki Bakugo","Izuku Midoriya","Shoto Todoroki","Tenya Iida"],1]],
+"Histoire":[
+["En quelle année l’Empire romain d’Occident est-il tombé ?",["376","476","1066","800"],1],
+["Quel roi de France était surnommé le Roi-Soleil ?",["Louis XIII","Louis XIV","Louis XV","Louis XVI"],1],
+["Quelle bataille a marqué la défaite de Napoléon en 1815 ?",["Austerlitz","Waterloo","Trafalgar","Verdun"],1],
+["En quelle année a débuté la Première Guerre mondiale ?",["1912","1914","1916","1918"],1],
+["Qui a atteint l’Amérique en 1492 ?",["Magellan","Vasco de Gama","Christophe Colomb","Marco Polo"],2],
+["Quel pharaon est célèbre pour son tombeau découvert en 1922 ?",["Ramsès II","Khéops","Toutânkhamon","Akhenaton"],2],
+["En quelle année l’esclavage a-t-il été définitivement aboli en France ?",["1789","1794","1848","1905"],2],
+["Qui a lancé l’appel du 18 juin 1940 depuis Londres ?",["Philippe Pétain","Charles de Gaulle","Jean Moulin","Georges Clemenceau"],1],
+["Quel traité de 1919 a mis fin à la guerre avec l’Allemagne ?",["Versailles","Rome","Utrecht","Vienne"],0],
+["Quel conflit a opposé la France et l’Angleterre de 1337 à 1453 ?",["Guerre de Trente Ans","Guerre de Cent Ans","Guerre de Sept Ans","Guerre des Deux-Roses"],1],
+["Qui fut le premier empereur romain ?",["Jules César","Auguste","Néron","Trajan"],1]],
+"Sport":[
+["Combien de joueurs d’une équipe de basket sont sur le terrain ?",["5","6","7","9"],0],
+["Quel pays a gagné la Coupe du monde de football 2022 ?",["France","Argentine","Brésil","Croatie"],1],
+["Combien de tournois composent le Grand Chelem au tennis ?",["3","4","5","6"],1],
+["Quelle ville a accueilli les JO d’été de 2016 ?",["Londres","Rio de Janeiro","Pékin","Tokyo"],1],
+["Combien de points vaut un essai au rugby à XV ?",["3","5","7","2"],1],
+["Quelle est la distance d’un marathon ?",["21,097 km","42,195 km","50 km","35 km"],1],
+["Quel pays a accueilli les JO d’été de 2024 ?",["Japon","France","États-Unis","Royaume-Uni"],1],
+["Combien de joueurs d’une équipe de volley-ball sont sur le terrain ?",["5","6","7","8"],1],
+["Quel sport de combat japonais oppose deux lutteurs dans un cercle ?",["Judo","Sumo","Karaté","Aïkido"],1],
+["De quelle couleur est le maillot du leader du Tour de France ?",["Vert","Jaune","Blanc","À pois"],1]],
+"Cinéma":[
+["Qui a réalisé Titanic (1997) ?",["Steven Spielberg","James Cameron","Ridley Scott","Christopher Nolan"],1],
+["Dans quelle saga trouve-t-on le capitaine Jack Sparrow ?",["Pirates des Caraïbes","Le Seigneur des anneaux","Indiana Jones","Star Wars"],0],
+["Quel film d’animation met en scène le poisson-clown Marin ?",["Le Monde de Nemo","Shrek","Cars","Ratatouille"],0],
+["Qui joue Iron Man dans les films Marvel ?",["Chris Evans","Robert Downey Jr.","Mark Ruffalo","Chris Hemsworth"],1],
+["Quel film français de 2011 réunit Omar Sy et François Cluzet ?",["Bienvenue chez les Ch’tis","Intouchables","Amélie Poulain","Taxi"],1],
+["Dans quelle saga entend-on « Que la Force soit avec toi » ?",["Star Wars","Matrix","Avatar","Alien"],0],
+["Qui a réalisé Pulp Fiction ?",["Martin Scorsese","Quentin Tarantino","David Fincher","Spike Lee"],1],
+["Quel festival décerne la Palme d’or ?",["Cannes","Venise","Berlin","Deauville"],0],
+["Comment s’appelle le robot du film Pixar sorti en 2008 ?",["R2-D2","WALL·E","Baymax","Bumblebee"],1],
+["Qui porte l’Anneau unique dans Le Seigneur des anneaux ?",["Bilbon","Frodon","Aragorn","Gandalf"],1],
+["Qui a réalisé Inception ?",["Christopher Nolan","Denis Villeneuve","Ridley Scott","Peter Jackson"],0]],
+"Culture générale":[
+["Combien de minutes compte une journée ?",["1 200","1 440","1 640","2 400"],1],
+["Quelle est la plus grande planète du système solaire ?",["Saturne","Jupiter","Neptune","Uranus"],1],
+["Quel est le plus grand désert chaud du monde ?",["Gobi","Kalahari","Sahara","Atacama"],2],
+["Quelle couleur obtient-on en mélangeant du bleu et du jaune ?",["Orange","Vert","Violet","Marron"],1],
+["Quel est l’animal terrestre le plus rapide ?",["Lion","Guépard","Cheval","Antilope"],1],
+["Combien de lettres compte l’alphabet français ?",["24","25","26","27"],2],
+["Quel pays a la forme d’une botte ?",["Espagne","Italie","Grèce","Portugal"],1],
+["Qui a peint « La Nuit étoilée » ?",["Monet","Van Gogh","Picasso","Dalí"],1],
+["Combien de cordes a un violon ?",["3","4","5","6"],1],
+["Que célèbre-t-on le 14 juillet en France ?",["La fête nationale","L’Armistice","La fête du Travail","La Victoire de 1945"],0]],
+"Sciences":[
+["Quelle est la formule chimique de l’eau ?",["CO₂","H₂O","O₂","NaCl"],1],
+["Quelle force nous maintient au sol ?",["Le magnétisme","La gravité","La friction","L’inertie"],1],
+["Combien de planètes compte le système solaire ?",["7","8","9","10"],1],
+["Quel gaz les plantes absorbent-elles pour la photosynthèse ?",["L’oxygène","L’azote","Le dioxyde de carbone","L’hydrogène"],2],
+["Quel élément a pour symbole Fe ?",["Le fluor","Le fer","Le francium","Le fermium"],1],
+["À quelle température l’eau bout-elle à pression normale ?",["90 °C","100 °C","110 °C","120 °C"],1],
+["Qui a formulé la théorie de la relativité ?",["Newton","Einstein","Galilée","Bohr"],1],
+["Quelle est l’unité de mesure de la force ?",["Le joule","Le watt","Le newton","Le pascal"],2],
+["Quelle particule porte une charge électrique négative ?",["Le proton","Le neutron","L’électron","Le photon"],2],
+["Comment s’appelle la galaxie qui contient la Terre ?",["Andromède","La Voie lactée","Le Triangle","Magellan"],1],
+["Quelle est la vitesse approximative du son dans l’air ?",["34 m/s","340 m/s","3 400 m/s","300 000 km/s"],1]],
+"Médecine":[
+["Combien de cavités (cavités cardiaques) compte le cœur humain ?",["2","3","4","6"],2],
+["Quel organe filtre le sang pour produire l’urine ?",["Le foie","Le rein","Le poumon","La rate"],1],
+["Quelle vitamine l’organisme fabrique-t-il grâce au soleil ?",["A","C","D","K"],2],
+["Quel groupe sanguin est donneur universel de globules rouges ?",["AB+","O−","A+","B−"],1],
+["Combien de dents a un adulte, dents de sagesse comprises ?",["28","30","32","36"],2],
+["Quel appareil mesure la tension artérielle ?",["Un stéthoscope","Un tensiomètre","Un thermomètre","Un oxymètre"],1],
+["Quel est le plus long os du corps humain ?",["Le tibia","Le fémur","L’humérus","Le radius"],1],
+["Contre quelle maladie le vaccin ROR protège-t-il notamment ?",["La rougeole","La grippe","Le tétanos","La covid"],0],
+["Quelle glande produit l’insuline ?",["La thyroïde","Le foie","Le pancréas","L’hypophyse"],2],
+["Qui a découvert la pénicilline ?",["Louis Pasteur","Alexander Fleming","Robert Koch","Marie Curie"],1],
+["Combien de litres de sang a un adulte environ ?",["2","5","8","12"],1]],
+"Géographie":[
+["Quelle est la plus grande île du monde ?",["Le Groenland","Madagascar","Bornéo","Sumatra"],0],
+["Quel est le plus grand pays du monde par sa superficie ?",["Canada","Chine","Russie","États-Unis"],2],
+["Quelle chaîne de montagnes sépare la France de l’Espagne ?",["Les Alpes","Les Pyrénées","Les Vosges","Le Jura"],1],
+["Quel est le plus haut sommet d’Europe occidentale ?",["Le Mont Blanc","L’Etna","Le Cervin","Le Mulhacén"],0],
+["Quel est le plus petit pays du monde ?",["Monaco","Le Vatican","Saint-Marin","Le Liechtenstein"],1],
+["Quel océan borde la côte ouest de la France ?",["L’Atlantique","Le Pacifique","L’océan Indien","L’Arctique"],0]].concat(D.map(d=>["Sur quel continent se situe : "+d[0]+" ?",[CN[d[2]],...pk(Object.values(CN),CN[d[2]])],0])),
+"Capitales":D.flatMap(d=>[["Quelle est la capitale du pays suivant : "+d[0]+" ?",[d[1],...pk(D.map(x=>x[1]),d[1])],0],[d[1]+" est la capitale de quel pays ?",[d[0],...pk(D.map(x=>x[0]),d[0])],0]])};
+const GEO0=B["Géographie"].slice(0,6);
+function regen(){B["Géographie"]=GEO0.concat(D.map(d=>["Sur quel continent se situe : "+d[0]+" ?",[CN[d[2]],...pk(Object.values(CN),CN[d[2]])],0]));
+B["Capitales"]=D.flatMap(d=>[["Quelle est la capitale du pays suivant : "+d[0]+" ?",[d[1],...pk(D.map(x=>x[1]),d[1])],0],[d[1]+" est la capitale de quel pays ?",[d[0],...pk(D.map(x=>x[0]),d[0])],0]])}
+let sel=null;
+function tg(i){const c=Object.keys(B)[i];if(sel.has(c)){if(sel.size>1)sel.delete(c)}else sel.add(c);home()}
+let G,tm;
+function qrSvg(t){try{const q=qrcode(0,"M");q.addData(t);q.make();const n=q.getModuleCount();let d="";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c+2} ${r+2}h1v1h-1z`;return `<svg viewBox="0 0 ${n+4} ${n+4}" shape-rendering="crispEdges" role="img" aria-label="QR code du quiz"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#1d1238"/></svg>`}catch(e){return ""}}
+function home(){
+  clearInterval(tm);sel=sel||new Set(Object.keys(B));
+  app.innerHTML=`<div class="mid"><div class="glyphs" style="justify-content:center"><i style="color:var(--c0)">▲</i><i style="color:var(--c1)">◆</i><i style="color:var(--c2)">●</i><i style="color:var(--c3)">■</i></div>
+<h1>Quiz</h1><p>30 questions par partie, ${T} secondes pour répondre. Plus tu réponds vite, plus tu marques de points.</p><p class="hint">Chaque partie mélange 10 thèmes : diversité, manga, histoire, sport, cinéma, culture générale, sciences, médecine, géographie et capitales.</p><input id="code" maxlength="20" value="${esc(code)}" placeholder="Code de partie (facultatif)" aria-label="Code de partie" autocomplete="off"><p class="hint">Tous les joueurs qui tapent le même code ont les mêmes questions, dans le même ordre.</p>
+<button class="go" onclick="start()">Commencer</button>
+${JOIN_URL?`<div class="qr">${qrSvg(JOIN_URL)}</div><p class="hint">Scanne ce QR code pour jouer sur ton téléphone.</p>`:""}</div>`;
+}
+function start(){
+  const el=document.getElementById("code");if(el)code=el.value.trim().toLowerCase();
+  rnd=code?seeded(code):Math.random;if(code)regen();
+  const pool=Object.keys(B).flatMap(c=>shuf(B[c]).slice(0,3).map(x=>[...x,c]));G={qs:shuf(pool).slice(0,30).map(q=>({q:q[0],c:q[3],o:shuf(q[1].map((t,i)=>[t,i===q[2]]))})),i:0,s:0,ok:0};rnd=Math.random;
+  ask();
+}
+function ask(){
+  const q=G.qs[G.i];G.t0=Date.now();G.done=false;
+  app.innerHTML=`<div class="top"><span>Question ${G.i+1} sur ${G.qs.length} – ${esc(q.c)}</span><span>${G.s} pts</span></div><div class="bar" aria-hidden="true"><i id="bar"></i></div>
+<div class="q">${esc(q.q)}</div><div class="opts" id="opts">${q.o.map((o,k)=>`<button class="opt o${k}" onclick="pick(${k})"><b aria-hidden="true">${SH[k]}</b>${esc(o[0])}</button>`).join("")}</div><div id="fb" aria-live="polite"></div>`;
+  clearInterval(tm);
+  tm=setInterval(()=>{const e=(Date.now()-G.t0)/1000,b=document.getElementById("bar");if(b)b.style.width=Math.max(0,100-e/T*100)+"%";if(e>=T)pick(-1)},100);
+}
+function pick(k){
+  if(G.done)return;G.done=true;clearInterval(tm);
+  const q=G.qs[G.i],e=Math.min((Date.now()-G.t0)/1000,T),ok=k>=0&&q.o[k][1],p=ok?Math.round(500+500*(1-e/T)):0;
+  G.s+=p;if(ok)G.ok++;
+  document.getElementById("opts").innerHTML=q.o.map((o,j)=>`<div class="opt o${j} ${o[1]?"good":"dim"}"><b aria-hidden="true">${SH[j]}</b>${esc(o[0])}</div>`).join("");
+  document.getElementById("fb").innerHTML=`<p class="fb ${ok?"ok":"ko"}">${ok?"Bonne réponse ! +"+p:k<0?"Temps écoulé":"Raté…"}</p><button class="go" onclick="next()">${G.i+1<G.qs.length?"Question suivante":"Voir mon score"}</button>`;
+}
+function next(){G.i++;G.i<G.qs.length?ask():end()}
+function end(){
+  const n=G.qs.length,m=G.ok/n,t=m>=.9?"Expert·e de la diversité !":m>=.7?"Très bien joué !":m>=.5?"Bon début, vous progressez !":"Une bonne occasion d’apprendre !";
+  app.innerHTML=`<div class="mid"><h1>${t}</h1><div class="big">${G.s}</div><p>points – ${G.ok} bonnes réponses sur ${n}</p>
+<button class="go" onclick="home()">Rejouer</button><button class="go alt" onclick="share()">Copier mon score</button><p class="hint" id="cp" aria-live="polite"></p></div>`;
+}
+async function share(){
+  const t=`J’ai marqué ${G.s} points au Quiz (${G.ok}/${G.qs.length} bonnes réponses)`+(code?" – code "+code:"")+(JOIN_URL?" : "+JOIN_URL:"");
+  let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
+  document.getElementById("cp").textContent=ok?"Score copié, colle-le où tu veux.":t;
+}
+home();
+</script>
+</body>
+</html>
